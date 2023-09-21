@@ -1,12 +1,12 @@
 [package]
-name = "sol-tweets"
+name = "block-guardian-verifier"
 version = "0.1.0"
-description = "Created with Anchor"
+description = "A Solana smart contract for storing merkle tree proofs on-chain"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "sol_tweets"
+name = "block_guardian_verifier"
 
 [features]
 no-entrypoint = []
