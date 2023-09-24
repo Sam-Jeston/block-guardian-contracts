@@ -1,9 +1,10 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { BlockGuardianVerifier } from "../target/types/block_guardian_verifier";
-import { expect } from "chai";
-import { PublicKey } from "@solana/web3.js";
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
+import { PublicKey } from '@solana/web3.js'
+
+const ADMIN_ADDRESS = '2sN2GNKZHroHZ1TZMBJPS16R4xjKyXzcFvt8nBapjddA'
 
 describe("block-guardian-verifier", () => {
   // Configure the client to use the local cluster.
@@ -32,21 +33,25 @@ describe("block-guardian-verifier", () => {
     console.log(tree.dump());
     console.log({ verified });
 
+    const initialAdminBlanace = await program.provider.connection.getBalance(new PublicKey(ADMIN_ADDRESS))
+    console.log(initialAdminBlanace.toString())
+
     const proofKeypair = anchor.web3.Keypair.generate();
     await program.methods
       .storeProof(hexToUint8Array(tree.root))
       .accounts({
         proofAccount: proofKeypair.publicKey,
+        adminAccount: new PublicKey(ADMIN_ADDRESS),
         // creator: anchorProvider.wallet.publicKey,
         // systemProgram: anchor.web3.SystemProgram.programId,
       })
       .signers([proofKeypair])
       .rpc();
-
+  
     // Fetch the account details of the created tweet.
     const proofAccounts = await program.account.proof.all([
       {
-        dataSize: 49, // number of bytes of the expected account
+        dataSize: 81, // number of bytes of the expected account
       },
       {
         memcmp: {
@@ -56,6 +61,10 @@ describe("block-guardian-verifier", () => {
       }
     ]);
     console.log({ proofAccount: '0x' + Buffer.from(proofAccounts[0].account.proof).toString('hex') });
+    console.log(JSON.stringify(proofAccounts[0], null, 2))
+    const postAdminBalance = await program.provider.connection.getBalance(new PublicKey(ADMIN_ADDRESS))
+    console.log(postAdminBalance.toString())
+
 
     const noProof = await program.account.proof.all([
       {
