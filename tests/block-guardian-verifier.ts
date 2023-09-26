@@ -12,9 +12,73 @@ describe("block-guardian-verifier", () => {
 
   const program = anchor.workspace
     .BlockGuardianVerifier as Program<BlockGuardianVerifier>;
-  const anchorProvider = program.provider as anchor.AnchorProvider;
 
   it("can create a new proof", async () => {
+    // (1)
+    const values = [["car"], ["case"], ["bat"], ["ball"], ["foo"], ["lee"]];
+
+    // (2)
+    const tree = StandardMerkleTree.of(values, ["string"]);
+
+    // (3)
+    console.log("Merkle Root:", tree.root);
+
+    const verified = StandardMerkleTree.verify(
+      tree.root,
+      ["string"],
+      ["ball"],
+      tree.getProof(3)
+    );
+    console.log(tree.getProof(3))
+    console.log(JSON.stringify(tree.dump(), null, 2));
+    console.log({ verified });
+
+    const initialAdminBlanace = await program.provider.connection.getBalance(new PublicKey(ADMIN_ADDRESS))
+    console.log(initialAdminBlanace.toString())
+
+    const proofKeypair = anchor.web3.Keypair.generate();
+    await program.methods
+      .storeProof(hexToUint8Array(tree.root))
+      .accounts({
+        proofAccount: proofKeypair.publicKey,
+        adminAccount: new PublicKey(ADMIN_ADDRESS),
+        // creator: anchorProvider.wallet.publicKey,
+        // systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([proofKeypair])
+      .rpc();
+  
+    // Fetch the account details of the created tweet.
+    const proofAccounts = await program.account.proof.all([
+      {
+        dataSize: 81, // number of bytes of the expected account
+      },
+      {
+        memcmp: {
+          offset: 8, // Discriminator.
+          bytes: hexToBase58(tree.root),
+        }
+      }
+    ]);
+    console.log({ proofAccount: '0x' + Buffer.from(proofAccounts[0].account.proof).toString('hex') });
+    console.log(JSON.stringify(proofAccounts[0], null, 2))
+    const postAdminBalance = await program.provider.connection.getBalance(new PublicKey(ADMIN_ADDRESS))
+    console.log(postAdminBalance.toString())
+
+
+    const noProof = await program.account.proof.all([
+      {
+        memcmp: {
+          offset: 8, // Discriminator.
+          bytes: hexToBase58('0xe4faa4a13f8f3562287edfad7e089f7c7ef0135c00190e6d8772eab67dad61f7'),
+        }
+      }
+    ]);
+
+    console.log({noProof})
+  });
+
+  it("fails if a bad admin account is sent", async () => {
     // (1)
     const values = [["car"], ["case"], ["bat"], ["ball"], ["foo"], ["lee"]];
 
@@ -41,7 +105,7 @@ describe("block-guardian-verifier", () => {
       .storeProof(hexToUint8Array(tree.root))
       .accounts({
         proofAccount: proofKeypair.publicKey,
-        adminAccount: new PublicKey(ADMIN_ADDRESS),
+        adminAccount: new PublicKey('3sN2GNKZHroHZ1TZMBJPS16R4xjKyXzcFvt8nBapjddA'),
         // creator: anchorProvider.wallet.publicKey,
         // systemProgram: anchor.web3.SystemProgram.programId,
       })
