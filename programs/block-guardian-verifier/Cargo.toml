@@ -1,7 +1,7 @@
 [package]
 name = "block-guardian-verifier"
 version = "0.1.0"
-description = "A Solana smart contract for storing merkle tree proofs on-chain"
+description = "A Solana smart contract for storing merkle tree roots and file hashes on-chain"
 edition = "2021"
 
 [lib]
