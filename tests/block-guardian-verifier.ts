@@ -94,6 +94,9 @@ describe('block-guardian-verifier', () => {
       '0x' + Buffer.from(proofAccounts[0].account.proof).toString('hex')
 
     expect(hashVerifiedOnChain).to.equal(validHash)
+    expect(proofAccounts[0].account.submitter.toBase58()).to.equal(
+      anchor.getProvider().publicKey.toBase58()
+    )
   })
 })
 

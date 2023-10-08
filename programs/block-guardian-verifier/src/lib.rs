@@ -15,7 +15,7 @@ pub mod block_guardian_verifier {
 
         proof_account.timestamp = clock.unix_timestamp;
         proof_account.proof = proof;
-        proof_account.creator = *ctx.accounts.creator.key;
+        proof_account.submitter = *ctx.accounts.submitter.key;
 
         Ok(())
     }
@@ -24,17 +24,21 @@ pub mod block_guardian_verifier {
 #[account]
 pub struct Proof {
     pub proof: [u8; 32],
-    pub creator: Pubkey,
+    // Submitting a proof does not verify ownership of the data, nor is that the
+    // intention of this contract. It does mean however that this signer knew the proof at
+    // the time of submission. This is sufficient for many auditing scenarios where the intent
+    // is only to verify that data has not been tampered with.
+    pub submitter: Pubkey,
     pub timestamp: i64
 }
 
 #[derive(Accounts)]
 pub struct CreateProof<'info> {
     #[account(mut)]
-    pub creator: Signer<'info>,
+    pub submitter: Signer<'info>,
     #[account(address = system_program::ID)]
     pub system_program: Program<'info, System>,
-    #[account(init, payer = creator, space = Proof::LEN)]
+    #[account(init, payer = submitter, space = Proof::LEN)]
     pub proof_account: Account<'info, Proof>,
 }
 
