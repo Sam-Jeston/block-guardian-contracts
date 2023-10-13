@@ -1,8 +1,6 @@
 [features]
 seeds = false
 skip-lint = false
-[programs.localnet]
-sol_tweets = "Gns3vGyjsn9L8jticbLGBug1rwm9qrUJCuHETPCHbfig"
 
 [registry]
 url = "https://api.apr.dev"
